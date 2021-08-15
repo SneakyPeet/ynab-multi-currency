@@ -23,13 +23,14 @@
       (and body-request? has-body?) (update :body json/generate-string))))
 
 
-(defn- parse-response [response]
+(defn parse-response [response & {:keys [body-path]
+                                  :or {body-path [:body :data]}}]
   (if (#{200 209} (:status response))
     (cond-> response
       (string? (:body response))
       (update :body json/parse-string keyword)
       true
-      (get-in [:body :data]))
+      (get-in body-path))
     (throw (ex-info "Request Error" (dissoc response :opts)))))
 
 
@@ -72,3 +73,20 @@
     {:method :patch
      :url    (str "/budgets/" (config/budget-id) "/transactions")
      :body {:transactions transactions}}))
+
+
+(defn fetch-currency-rate-for-date
+  "2021-08-15"
+  [date]
+  (let [source (config/source-currency)
+        destination (config/destination-currency)
+        endpoint (str "http://data.fixer.io/api/"
+                      date
+                      "?access_key=" (config/fixer-token)
+                      "&symbols=" source "," destination)
+        rates (-> (http/get endpoint)
+                  deref
+                  (parse-response :body-path [:body])
+                  :rates)]
+    (/ (get rates (keyword destination))
+       (get rates (keyword source)))))

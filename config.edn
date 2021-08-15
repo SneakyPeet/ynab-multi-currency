@@ -1,3 +1,7 @@
 {:token ""
  :budget-id ""
- :account-ids #{}}
+ :account-ids #{""}
+
+ :fixer-io-token ""
+ :source-currency "ZAR"
+ :destination-currency "MUR"}

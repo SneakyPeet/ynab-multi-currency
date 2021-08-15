@@ -10,3 +10,9 @@
 (defn budget-id [] (:budget-id c))
 
 (defn account-ids [] (:account-ids c))
+
+(defn fixer-token [] (:fixer-io-token c))
+
+(defn source-currency [] (:source-currency c))
+
+(defn destination-currency [] (:destination-currency c))
