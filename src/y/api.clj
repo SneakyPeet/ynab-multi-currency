@@ -50,9 +50,7 @@
     (client
       {:method :get :url "/budgets"})
     :budgets
-    (map (fn [{:keys [id name]}]
-           [name id]))
-    (into {})))
+    (map (fn [budget] (select-keys budget [:name :id])))))
 
 
 (defn get-accounts
@@ -61,9 +59,7 @@
     (client
       {:method :get :url (str "/budgets/" (config/budget-id) "/accounts")})
     :accounts
-    (map (fn [{:keys [name id]}]
-           [name id]))
-    (into {})))
+    (map (fn [account] (select-keys account [:name :id])))))
 
 
 (defn get-transactions
@@ -74,7 +70,7 @@
       {:method :get
        :url    (str "/budgets/" (config/budget-id) "/accounts/" account-id "/transactions?since_date=" since-date)})
     :transactions
-    (map (fn [t] (select-keys t [:id :account_id :date :amount :memo])))))
+    (map (fn [t] (select-keys t [:id :account_id :date :amount :memo :subtransactions])))))
 
 
 (defn save-transactions

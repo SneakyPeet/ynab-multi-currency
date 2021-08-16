@@ -18,6 +18,7 @@
        (filter should-convert?)))
 
 
+
 (defn- date-rate-lookup [transactions]
   (->> transactions
        (map :date)
@@ -29,21 +30,31 @@
        (into {})))
 
 
-(defn- apply-rate [lookup transaction]
-  (let [{:keys [rate short-rate]} (get lookup (:date transaction))
-        {:keys [amount memo]} transaction
-        new-amount (int (* rate amount))
-        new-memo (string/join "|" [place-holder
-                                   (double (/ amount 1000))
-                                   (y.config/source-currency)
-                                   short-rate
-                                   (string/trim memo)])
+(defn- apply-rate-to-item [item rate short-rate]
+  (let [{:keys [amount memo
+                subtransactions]} item
+        can-update? (not (seq subtransactions))
+        new-amount                (int (* rate amount))
+        new-memo                  (->> [place-holder
+                                        (double (/ amount 1000))
+                                        (y.config/source-currency)
+                                        (if can-update?
+                                          short-rate
+                                          (str "❗" rate))
+                                        (string/trim memo)]
+                                       (string/join "|" ))
 
         short-memo (subs new-memo 0 (min (count new-memo) 200))]
-    (assoc transaction
-           :old-amount amount
-           :amount new-amount
-           :memo short-memo)))
+    (cond-> (assoc item :memo short-memo)
+      can-update? (assoc :amount new-amount))))
+
+
+(defn- apply-rate [lookup transaction]
+  (let [{:keys [rate short-rate]} (get lookup (:date transaction))
+        {:keys [amount]} transaction]
+    (-> transaction
+        (apply-rate-to-item rate short-rate)
+        (assoc :old-amount amount))))
 
 
 (defn- get-updated-transactions [from-date]
@@ -63,8 +74,10 @@
 
 
 (defn print-changes [from-date]
-  (->> (get-updated-transactions from-date)
-       print-changed-transactions))
+  (let [changes (get-updated-transactions from-date)]
+    (if (seq changes)
+      (print-changed-transactions changes)
+      (prn "No changes"))))
 
 
 (defn apply-changes [from-date]

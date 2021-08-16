@@ -4,9 +4,9 @@
  {:requires ([y.api :as api]
              [y.core :as ynab])
 
-  budgets (prn (api/get-budgets))
+  budgets (clojure.pprint/print-table (api/get-budgets))
 
-  accounts (clojure.pprint/pprint (api/get-accounts))
+  accounts (clojure.pprint/print-table (api/get-accounts))
 
   view  (ynab/print-changes (first *command-line-args*))
 
