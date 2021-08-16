@@ -4,4 +4,5 @@
 
  :fixer-io-token ""
  :source-currency "ZAR"
- :destination-currency "MUR"}
+ :destination-currency "MUR"
+ :prefix "__"}

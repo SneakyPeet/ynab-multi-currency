@@ -1,4 +1,4 @@
-(ns api
+(ns y.api
   (:require [y.config :as config]
             [cheshire.core :as json]
             [org.httpkit.client :as http]))
@@ -46,14 +46,24 @@
 
 
 (defn get-budgets []
-  (client
-    {:method :get :url "/budgets"}))
+  (->>
+    (client
+      {:method :get :url "/budgets"})
+    :budgets
+    (map (fn [{:keys [id name]}]
+           [name id]))
+    (into {})))
 
 
 (defn get-accounts
   []
-  (client
-    {:method :get :url (str "/budgets/" (config/budget-id) "/accounts")}))
+  (->>
+    (client
+      {:method :get :url (str "/budgets/" (config/budget-id) "/accounts")})
+    :accounts
+    (map (fn [{:keys [name id]}]
+           [name id]))
+    (into {})))
 
 
 (defn get-transactions
@@ -75,7 +85,7 @@
      :body {:transactions transactions}}))
 
 
-(defn fetch-currency-rate-for-date
+(defn get-currency-rate-for-date
   "2021-08-15"
   [date]
   (let [source (config/source-currency)
@@ -84,9 +94,12 @@
                       date
                       "?access_key=" (config/fixer-token)
                       "&symbols=" source "," destination)
-        rates (-> (http/get endpoint)
-                  deref
-                  (parse-response :body-path [:body])
-                  :rates)]
+        {:keys [rates
+                success
+                error]} (-> (http/get endpoint)
+                              deref
+                              (parse-response :body-path [:body]))]
+    (when-not success
+      (throw (ex-info "Fixer Api Error" {:err error})))
     (/ (get rates (keyword destination))
        (get rates (keyword source)))))

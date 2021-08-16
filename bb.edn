@@ -1,2 +1,13 @@
 {:paths ["src"]
- :deps {}}
+ :deps {}
+ :tasks
+ {:requires ([y.api :as api]
+             [y.core :as ynab])
+
+  budgets (prn (api/get-budgets))
+
+  accounts (clojure.pprint/pprint (api/get-accounts))
+
+  view  (ynab/print-changes (first *command-line-args*))
+
+  apply (ynab/apply-changes (first *command-line-args*))}}

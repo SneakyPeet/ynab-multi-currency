@@ -16,3 +16,5 @@
 (defn source-currency [] (:source-currency c))
 
 (defn destination-currency [] (:destination-currency c))
+
+(defn prefix [] (:prefix c))
